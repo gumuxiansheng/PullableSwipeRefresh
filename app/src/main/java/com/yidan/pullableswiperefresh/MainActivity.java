@@ -10,6 +10,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.widget.NestedScrollView;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +27,8 @@ public class MainActivity extends Activity {
     private TabLayout tabLayout;
     private ViewPager viewPager;
 
+    private final int DISTANCE_TO_TRIGGER_SYNC = 120;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,8 +36,10 @@ public class MainActivity extends Activity {
 
         scrollView = (ExSwipeRefreshLayout) findViewById(R.id.scroll_view);
         scrollView.setMode(ExSwipeRefreshLayout.Mode.BOTH);
-        TextView footerText = new TextView(this);
-        footerText.setText("加载中...");
+        scrollView.setDistanceToTriggerSync(DISTANCE_TO_TRIGGER_SYNC);
+        final TextView footerText = new TextView(this);
+        footerText.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        footerText.setGravity(Gravity.CENTER);
         scrollView.setFooterView(footerText);
         scrollView.setOnPullFromStartListener(new ExSwipeRefreshLayout.OnPullFromStartListener() {
             @Override
@@ -59,12 +64,17 @@ public class MainActivity extends Activity {
             }
         });
         scrollView.setOnPullFromEndListener(new ExSwipeRefreshLayout.OnPullFromEndListener() {
+            boolean isLoading;
+
             @Override
             public void onLoadMore() {
+                isLoading = true;
+                footerText.setText("Loading...");
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         scrollView.stopLoadingMore();
+                        isLoading = false;
                     }
                 }, 1000);
 
@@ -72,6 +82,9 @@ public class MainActivity extends Activity {
 
             @Override
             public void onPushDistance(int distance) {
+                if (!isLoading) {
+                    footerText.setText(distance > DISTANCE_TO_TRIGGER_SYNC ? "Already reached" : "Almost done");
+                }
 
             }
 
@@ -85,9 +98,9 @@ public class MainActivity extends Activity {
         viewPager = (ViewPager) findViewById(R.id.view_pager);
 
         List<String> urls = new ArrayList<>();
-        urls.add("https://www.baidu.com");
-        urls.add("https://www.baidu.com");
-        urls.add("http://img.zcool.cn/community/05e5e1554af04100000115a8236351.jpg");
+        urls.add("https://github.com/chrisbanes/Android-PullToRefresh");
+        urls.add("https://github.com/gumuxiansheng");
+        urls.add("http://www.jrtstudio.com/sites/default/files/ico_android.png");
 
         final DetailImagesAdapter adapter = new DetailImagesAdapter(this, urls, scrollView);
         viewPager.setAdapter(adapter);

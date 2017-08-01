@@ -994,7 +994,7 @@ public class ExSwipeRefreshLayout extends ViewGroup {
                     updateFooterViewPosition();
                     if (mOnPullFromEndListener != null) {
                         mOnPullFromEndListener
-                                .onPushEnable(pushDistance >= mFooterViewHeight);
+                                .onPushEnable(pushDistance >= mTotalDragDistance);
                     }
                 }
                 break;
@@ -1021,10 +1021,10 @@ public class ExSwipeRefreshLayout extends ViewGroup {
                 final int pointerIndex = MotionEventCompat.findPointerIndex(ev,
                         mActivePointerId);
                 final float y = MotionEventCompat.getY(ev, pointerIndex);
-                final float overscrollBottom = (mInitialMotionY - y) * DRAG_RATE;
+                final float overScrollBottom = (mInitialMotionY - y) * DRAG_RATE;
                 mIsBeingDragged = false;
                 mActivePointerId = INVALID_POINTER;
-                if (overscrollBottom < mFooterViewHeight
+                if (overScrollBottom < mTotalDragDistance
                         || mOnPullFromEndListener == null) {// cancel
                     pushDistance = 0;
                 } else {
@@ -1038,7 +1038,7 @@ public class ExSwipeRefreshLayout extends ViewGroup {
                         mOnPullFromEndListener.onLoadMore();
                     }
                 } else {
-                    animatorFooterToBottom((int) overscrollBottom, pushDistance);
+                    animatorFooterToBottom((int) overScrollBottom, pushDistance);
                 }
                 return false;
             }
@@ -1062,6 +1062,7 @@ public class ExSwipeRefreshLayout extends ViewGroup {
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
                 // update
                 pushDistance = (Integer) valueAnimator.getAnimatedValue();
+                updateFooterViewPosition();
 
             }
         });
